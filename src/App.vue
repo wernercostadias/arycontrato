@@ -6,6 +6,7 @@ const modalOpen = ref(false)
 const modalStage = ref('confirm')
 const contractAccepted = ref(false)
 const storageKey = 'ary-axolote-contract-accepted'
+const checklistStorageKey = 'ary-axolote-contract-checklist'
 const pageDropDistance = ref('100vh')
 
 const obligationsBoyfriend = [
@@ -29,6 +30,7 @@ const discordActivities = [
   'Trocar memes duvidosos.',
   'Ficar em silencio na call e mesmo assim dizer que foi divertido.'
 ]
+const checkedActivities = ref([])
 
 const penalties = [
   'Perda temporaria do titulo de "amor".',
@@ -99,12 +101,31 @@ function persistAcceptance() {
   window.localStorage.setItem(storageKey, 'accepted')
 }
 
+function toggleActivity(activity) {
+  const alreadyChecked = checkedActivities.value.includes(activity)
+
+  checkedActivities.value = alreadyChecked
+    ? checkedActivities.value.filter((item) => item !== activity)
+    : [...checkedActivities.value, activity]
+
+  persistChecklist()
+}
+
+function persistChecklist() {
+  if (typeof window === 'undefined') {
+    return
+  }
+
+  window.localStorage.setItem(checklistStorageKey, JSON.stringify(checkedActivities.value))
+}
+
 onMounted(() => {
   if (typeof window === 'undefined') {
     return
   }
 
   contractAccepted.value = window.localStorage.getItem(storageKey) === 'accepted'
+  checkedActivities.value = readChecklistFromStorage()
   updatePageDropDistance()
   window.addEventListener('resize', updatePageDropDistance)
 })
@@ -167,6 +188,27 @@ function updatePageDropDistance() {
 
   pageDropDistance.value = `${documentHeight + 160}px`
 }
+
+function readChecklistFromStorage() {
+  if (typeof window === 'undefined') {
+    return []
+  }
+
+  const storedValue = window.localStorage.getItem(checklistStorageKey)
+
+  if (!storedValue) {
+    return []
+  }
+
+  try {
+    const parsedValue = JSON.parse(storedValue)
+    return Array.isArray(parsedValue)
+      ? parsedValue.filter((item) => discordActivities.includes(item))
+      : []
+  } catch {
+    return []
+  }
+}
 </script>
 
 <template>
@@ -191,30 +233,26 @@ function updatePageDropDistance() {
 
     <main class="contract-card page-reveal">
       <section class="hero section-reveal" style="--reveal-delay: 0.08s">
+        <img
+          class="hero-image"
+          src="/diadosnamorados.png"
+          alt="Ilustracao romantica de Dia dos Namorados"
+        />
         <p class="eyebrow">Especial Dia dos Namorados 💕</p>
         <h1>Contrato Oficial de Namoro Temporario</h1>
+        <div class="couple-highlight">
+          <span class="couple-name">Axolote 🦎</span>
+          <span class="couple-divider">e</span>
+          <span class="couple-name">Ary 🌸</span>
+        </div>
+        <p class="duration-badge">Valido das 00:00 ate as 23:59 do Dia dos Namorados</p>
         <p class="intro">
           Um acordo romantico, divertido e oficialmente fofo para 24 horas de carinho,
           memes, call e energia de casal gamer.
         </p>
       </section>
 
-      <section class="parties section-reveal" style="--reveal-delay: 0.16s">
-        <div class="party-box">
-          <span class="label">Namorado Temporario</span>
-          <strong>Axolote 🦎</strong>
-        </div>
-        <div class="party-box">
-          <span class="label">Namorada Temporaria</span>
-          <strong>Ary 🌸</strong>
-        </div>
-        <div class="party-box">
-          <span class="label">Vigencia</span>
-          <strong>Das 00:00 ate as 23:59 do Dia dos Namorados</strong>
-        </div>
-      </section>
-
-      <section class="clause section-reveal" style="--reveal-delay: 0.24s">
+      <section class="clause section-reveal" style="--reveal-delay: 0.16s">
         <h2>Clausula 1 - Do Objeto</h2>
         <p>
           O presente contrato tem como objetivo oficializar o namoro entre Axolote e Ary
@@ -223,39 +261,43 @@ function updatePageDropDistance() {
         </p>
       </section>
 
-      <section class="clause section-reveal" style="--reveal-delay: 0.32s">
+      <section class="clause section-reveal" style="--reveal-delay: 0.24s">
         <h2>Clausula 2 - Das Obrigacoes do Namorado</h2>
         <ul class="pretty-list">
           <li v-for="item in obligationsBoyfriend" :key="item">{{ item }}</li>
         </ul>
       </section>
 
-      <section class="clause section-reveal" style="--reveal-delay: 0.4s">
+      <section class="clause section-reveal" style="--reveal-delay: 0.32s">
         <h2>Clausula 3 - Das Obrigacoes da Namorada</h2>
         <ul class="pretty-list">
           <li v-for="item in obligationsGirlfriend" :key="item">{{ item }}</li>
         </ul>
       </section>
 
-      <section class="clause activities section-reveal" style="--reveal-delay: 0.48s">
+      <section class="clause activities section-reveal" style="--reveal-delay: 0.4s">
         <h2>Clausula 4 - Das Atividades Obrigatorias no Discord</h2>
         <div class="check-grid">
           <label v-for="item in discordActivities" :key="item" class="check-card">
-            <input type="checkbox" />
+            <input
+              :checked="checkedActivities.includes(item)"
+              type="checkbox"
+              @change="toggleActivity(item)"
+            />
             <span class="checkmark"></span>
             <span class="check-text">{{ item }}</span>
           </label>
         </div>
       </section>
 
-      <section class="clause section-reveal" style="--reveal-delay: 0.56s">
+      <section class="clause section-reveal" style="--reveal-delay: 0.48s">
         <h2>Clausula 5 - Das Penalidades</h2>
         <ul class="pretty-list">
           <li v-for="item in penalties" :key="item">{{ item }}</li>
         </ul>
       </section>
 
-      <section class="clause final-clause section-reveal" style="--reveal-delay: 0.64s">
+      <section class="clause final-clause section-reveal" style="--reveal-delay: 0.56s">
         <h2>Clausula Final</h2>
         <p>
           Ambas as partes declaram estar entrando neste relacionamento de livre e
@@ -263,7 +305,7 @@ function updatePageDropDistance() {
         </p>
       </section>
 
-      <section class="signature-section section-reveal" style="--reveal-delay: 0.72s">
+      <section class="signature-section section-reveal" style="--reveal-delay: 0.64s">
         <div class="signature-line">
           <span class="signer-name">Axolote 🦎</span>
           <span class="signature-block">
@@ -281,11 +323,11 @@ function updatePageDropDistance() {
         <p class="date">Data: 12/06/2026</p>
       </section>
 
-      <blockquote class="closing-phrase section-reveal" style="--reveal-delay: 0.8s">
+      <blockquote class="closing-phrase section-reveal" style="--reveal-delay: 0.72s">
         "Que o ping esteja baixo e o amor esteja alto."
       </blockquote>
 
-      <div class="cta-panel section-reveal" style="--reveal-delay: 0.88s">
+      <div class="cta-panel section-reveal" style="--reveal-delay: 0.8s">
         <button class="primary-button" type="button" @click="openModal">
           {{ buttonLabel }}
         </button>
@@ -416,17 +458,26 @@ input {
   margin-bottom: 28px;
 }
 
+.hero-image {
+  display: block;
+  width: min(700px, calc(100% + 40px));
+  height: auto;
+  margin: -10px auto 10px;
+  filter: drop-shadow(0 22px 34px rgba(190, 98, 140, 0.18));
+}
+
 .eyebrow,
 .modal-kicker {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 8px 14px;
+  padding: 7px 12px;
   border-radius: 999px;
   background: rgba(255, 111, 174, 0.12);
   color: var(--pink-main);
   font-weight: 700;
   letter-spacing: 0.02em;
+  font-size: 0.95rem;
 }
 
 .hero h1,
@@ -436,46 +487,62 @@ input {
 }
 
 .hero h1 {
-  font-size: clamp(2.2rem, 5vw, 4.2rem);
+  font-size: clamp(1.95rem, 4vw, 3.25rem);
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .intro {
   max-width: 620px;
   margin: 0 auto;
-  font-size: 1.05rem;
+  font-size: 0.98rem;
   color: rgba(74, 59, 87, 0.82);
 }
 
-.parties {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+.couple-highlight {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   gap: 14px;
-  margin-bottom: 24px;
+  flex-wrap: wrap;
+  margin: 10px 0 14px;
 }
 
-.party-box,
+.couple-name {
+  font-size: clamp(1.7rem, 3.2vw, 2.35rem);
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.couple-divider {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(255, 111, 174, 0.18), rgba(220, 198, 255, 0.45));
+  color: var(--pink-main);
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.duration-badge {
+  display: inline-flex;
+  margin: 0 0 16px;
+  padding: 9px 16px;
+  border-radius: 999px;
+  background: rgba(255, 214, 231, 0.62);
+  color: rgba(74, 59, 87, 0.82);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
 .clause,
 .modal-card {
   border: 1px solid var(--border);
   box-shadow: var(--shadow-soft);
-}
-
-.party-box {
-  padding: 18px;
-  border-radius: 22px;
-  background: linear-gradient(180deg, rgba(255, 214, 231, 0.5), rgba(243, 238, 255, 0.86));
-}
-
-.label {
-  display: block;
-  margin-bottom: 6px;
-  color: rgba(74, 59, 87, 0.68);
-  font-size: 0.92rem;
-}
-
-.party-box strong {
-  display: block;
-  font-size: 1.02rem;
 }
 
 .clause {
@@ -800,19 +867,23 @@ input {
     border-radius: 24px;
   }
 
-  .parties,
   .check-grid {
     grid-template-columns: 1fr;
   }
 
   .clause,
   .signature-section,
-  .party-box {
+  .duration-badge {
     padding: 18px;
   }
 
   .hero h1 {
     font-size: 2rem;
+  }
+
+  .hero-image {
+    width: min(100%, 560px);
+    margin-top: -4px;
   }
 
   .modal-card {
