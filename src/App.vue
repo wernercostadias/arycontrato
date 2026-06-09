@@ -1,6 +1,10 @@
 <script setup>
 import confetti from 'canvas-confetti'
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import aryAvatar from '../ary.jpg'
+import heroImage from '../diadosnamorados.png'
+import zenzyHappy from '../zenzy_feliz.png'
+import zenzySad from '../zenzy_triste.png'
 
 const modalOpen = ref(false)
 const modalStage = ref('confirm')
@@ -59,17 +63,21 @@ const modalContent = computed(() => {
   if (modalStage.value === 'thinking') {
     return {
       className: 'modal-card sad-mode',
+      image: zenzySad,
+      imageAlt: 'Axolote triste',
       kicker: '🥺 Resposta Recebida',
       title: 'O coracao do Axolote ficou tristinho.',
       text: 'Sem assinatura por enquanto... agora so restou olhar para a tela, abracar um travesseiro e esperar o universo romantico ter piedade.'
     }
   }
 
-  return {
-    className: 'modal-card',
-    kicker: '💌 Confirmar Assinatura',
-    title: 'Ary, voce aceita ser a namorada temporaria de Axolote por 24 horas?',
-    text: 'Esse e um compromisso serio, fofo e totalmente valido no universo romantico gamer.'
+    return {
+      className: 'modal-card',
+      image: '',
+      imageAlt: '',
+      kicker: '💌 Confirmar Assinatura',
+      title: 'Ary, voce aceita ser a namorada temporaria de Axolote por 24 horas?',
+      text: 'Esse e um compromisso serio, fofo e totalmente valido no universo romantico gamer.'
   }
 })
 
@@ -235,15 +243,20 @@ function readChecklistFromStorage() {
       <section class="hero section-reveal" style="--reveal-delay: 0.08s">
         <img
           class="hero-image"
-          src="/diadosnamorados.png"
+          :src="heroImage"
           alt="Ilustracao romantica de Dia dos Namorados"
         />
-        <p class="eyebrow">Especial Dia dos Namorados 💕</p>
         <h1>Contrato Oficial de Namoro Temporario</h1>
         <div class="couple-highlight">
-          <span class="couple-name">Axolote 🦎</span>
+          <span class="couple-name">
+            <img class="name-avatar" :src="zenzyHappy" alt="Avatar do Axolote" />
+            <span>Axolote</span>
+          </span>
           <span class="couple-divider">e</span>
-          <span class="couple-name">Ary 🌸</span>
+          <span class="couple-name">
+            <img class="name-avatar" :src="aryAvatar" alt="Avatar da Ary" />
+            <span>Ary</span>
+          </span>
         </div>
         <p class="duration-badge">Valido das 00:00 ate as 23:59 do Dia dos Namorados</p>
         <p class="intro">
@@ -340,6 +353,12 @@ function readChecklistFromStorage() {
           <button class="close-button" type="button" aria-label="Fechar modal" @click="closeModal">
             ×
           </button>
+          <img
+            v-if="modalContent.image"
+            class="modal-character"
+            :src="modalContent.image"
+            :alt="modalContent.imageAlt"
+          />
           <p class="modal-kicker">{{ modalContent.kicker }}</p>
           <h2 id="modal-title">{{ modalContent.title }}</h2>
           <p class="modal-message">{{ modalContent.text }}</p>
@@ -510,22 +529,29 @@ input {
 }
 
 .couple-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
   font-size: clamp(1.7rem, 3.2vw, 2.35rem);
   font-weight: 800;
   color: var(--text-main);
 }
 
-.couple-divider {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 42px;
-  height: 42px;
+.name-avatar {
+  width: clamp(42px, 5vw, 58px);
+  height: clamp(42px, 5vw, 58px);
   border-radius: 50%;
-  background: linear-gradient(135deg, rgba(255, 111, 174, 0.18), rgba(220, 198, 255, 0.45));
-  color: var(--pink-main);
-  font-weight: 900;
-  text-transform: uppercase;
+  object-fit: cover;
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow:
+    0 10px 18px rgba(157, 93, 131, 0.18),
+    inset 0 0 0 3px rgba(255, 255, 255, 0.75);
+}
+
+.couple-divider {
+  color: rgba(74, 59, 87, 0.82);
+  font-size: clamp(1.7rem, 3.2vw, 2.35rem);
+  font-weight: 800;
 }
 
 .duration-badge {
@@ -781,6 +807,14 @@ input {
   margin: 0;
   color: rgba(74, 59, 87, 0.84);
   font-size: 1rem;
+}
+
+.modal-character {
+  display: block;
+  width: min(180px, 55%);
+  height: auto;
+  margin: 8px auto 14px;
+  filter: drop-shadow(0 12px 18px rgba(127, 95, 177, 0.16));
 }
 
 .modal-actions {
